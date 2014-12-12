@@ -7,6 +7,13 @@ import apriori
 pp = pprint.PrettyPrinter(indent=4)
 users_filename = "./yelp/sm_user.json"
 reviews_filename = "./yelp/sm_review.json"
+bus_filename = "./yelp/sm_business.json"
+
+util_matrix = ''
+dataset = ''
+user_ids = {}
+bus_ids = {} # integer to id
+bus_ints = {} # id to integer
 
 # First make dataset by making lists for each user of places they visited and rated highly and maybe even lowly
 # So maybe have each place plus its rating by that user
@@ -35,21 +42,35 @@ def make_dataset(users_filename, reviews_filename):
 #        id = user["user_id"]
 #        dataset[id] = {"reviews": []} 
 
+    i = 0
+    j = 0
+    
     for review in reviews:
         author = review["user_id"]
         business = review["business_id"]
         stars = review["stars"]
-
+        
         if author in dataset:
             dataset[author]["reviews"].append({"business_id": business, "stars": stars})
+            if business not in bus_ids.values():
+                bus_ids[j] = business
+                bus_ints[business] = j
+                j += 1
         else:
             dataset[author] = {"reviews": []}
+            user_ids[i] = author
+            i += 1
             dataset[author]["reviews"].append({"business_id": business, "stars": stars})
+            if business not in bus_ids.values():
+                bus_ids[j] = business
+                bus_ints[business] = j
+                j += 1
     return dataset
 #    pp.pprint(dataset)
 #    print json.dumps(dataset, indent = 4)
 
 dataset = make_dataset(users_filename, reviews_filename)
+print "# of users: {}, # of businesses: {}".format(len(user_ids), len(bus_ids))
 
 def make_apriori_dataset(data):
     dataset = []
@@ -68,12 +89,22 @@ def make_apriori_dataset(data):
 #for entry in L[0]:
 #    print entry
 
-def find_recs(user):
+def make_util_mtrx():
+    mtrx = [[0 for bus in range(len(bus_ids))] for user in range(len(user_ids))]
+    assert len(mtrx) == len(user_ids)
+    assert len(mtrx[0]) == len(bus_ids)
+make_util_mtrx()
+exit(0)
 
+#def find_recommendations(user):
+#
+#def favs(user):
+#
+#def find_similar_users(user):
+#
+#def cos_sim(user1, user2):
 
+    
 
-
-
-
-
+ 
 
