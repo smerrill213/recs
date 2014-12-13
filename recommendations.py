@@ -25,10 +25,10 @@ threshold = .3
 # Function: make dataset
 def make_dataset(users_filename, reviews_filename):
 
-    with open(users_filename, 'rb') as users_file:
-        user_data = users_file.read()
-
-    users = json.loads(user_data)
+#    with open(users_filename, 'rb') as users_file:
+#        user_data = users_file.read()
+#
+#    users = json.loads(user_data)
 
     with open(reviews_filename, 'rb') as reviews_file:
         review_data = reviews_file.read()
@@ -56,7 +56,7 @@ def make_dataset(users_filename, reviews_filename):
         
         if author in dataset:
             dataset[author]["reviews"].append({"business_id": business, "stars": stars})
-            if business not in bus_ids.values():
+            if business not in bus_ints:
                 bus_ids[j] = business
                 bus_ints[business] = j
                 j += 1
@@ -66,7 +66,7 @@ def make_dataset(users_filename, reviews_filename):
             user_ints[author] = i
             i += 1
             dataset[author]["reviews"].append({"business_id": business, "stars": stars})
-            if business not in bus_ids.values():
+            if business not in bus_ints:
                 bus_ids[j] = business
                 bus_ints[business] = j
                 j += 1
@@ -75,6 +75,26 @@ def make_dataset(users_filename, reviews_filename):
 #    print json.dumps(dataset, indent = 4)
 
 dataset = make_dataset(users_filename, reviews_filename)
+
+def make_utility_mtrx():
+    num_users = len(user_ids)
+    num_bus = len(bus_ids)
+    mtrx = [[0 for j in range(num_bus)] for i in range(num_users)]
+    for user in dataset:
+        if user in user_ints:
+            userint = user_ints[user]
+            for review in dataset[user]["reviews"]:
+                busint = bus_ints[review["business_id"]]
+                stars = review["stars"]
+                mtrx[userint][busint] = stars
+        else:
+            print "User {} not in user_ids".format(user)
+    return mtrx
+
+umtrx = make_utility_mtrx()
+#for u in umtrx:
+#    print u
+#    print "\n"
 
 def make_apriori_dataset(data):
     dataset = []
@@ -104,11 +124,13 @@ def make_util_mtrx():
             mtrx[usernum][busnum] = review["stars"]
     return mtrx 
 
-make_util_mtrx()
+#umtrx = make_util_mtrx()
+#for user in umtrx:
+#    print "{}\n".format(user)
 
 def cos_sim(user1, user2): # user1 and user2 are id numbers (integers)
     numerator = 0
-    for i in range(len(umtrx[0]):
+    for i in range(len(umtrx[0])):
         if umtrx[user1][i] != 0 and umtrx[user2][i] != 0:
             numerator += umtrx[user1][i] * umtrx[user2][i]
     denom = 0
@@ -121,13 +143,22 @@ def cos_sim(user1, user2): # user1 and user2 are id numbers (integers)
     denom += sqrt(user1sumsq) * sqrt(user2sumsq)
     if denom == 0:
         return 0
-    else return numerator / denom
+    else:
+        return numerator / denom
+
+#for i in range(15):
+#    for j in range(15):
+#        print "cos_sim for users {} and {}: {}".format(i, j, cos_sim(i, j))
+#        if cos_sim(i, j) == 1.0:
+#            print "\nutility matrix for {}: {}\n\nutility matrix for {}: {}\n".format(i, umtrx[i], j, umtrx[j])
+#
+#def find_similar_users(user): # user is the integer id
+     
 
 #def find_recommendations(user):
 #
 #def favs(user):
 #
-#def find_similar_users(user):
 #
 
 #def normalize_mtrx(mtrx) 
