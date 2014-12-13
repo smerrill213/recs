@@ -1,19 +1,23 @@
 #!/usr/bin/python
 
+from __future__ import division
 import json
 import pprint
 import apriori
+from math import sqrt
 
 pp = pprint.PrettyPrinter(indent=4)
 users_filename = "./yelp/sm_user.json"
 reviews_filename = "./yelp/sm_review.json"
 bus_filename = "./yelp/sm_business.json"
 
-util_matrix = ''
+umtrx = ''
 dataset = ''
-user_ids = {}
 bus_ids = {} # integer to id
 bus_ints = {} # id to integer
+user_ids = {}
+user_ints = {}
+threshold = .3
 
 # First make dataset by making lists for each user of places they visited and rated highly and maybe even lowly
 # So maybe have each place plus its rating by that user
@@ -59,6 +63,7 @@ def make_dataset(users_filename, reviews_filename):
         else:
             dataset[author] = {"reviews": []}
             user_ids[i] = author
+            user_ints[author] = i
             i += 1
             dataset[author]["reviews"].append({"business_id": business, "stars": stars})
             if business not in bus_ids.values():
@@ -70,7 +75,6 @@ def make_dataset(users_filename, reviews_filename):
 #    print json.dumps(dataset, indent = 4)
 
 dataset = make_dataset(users_filename, reviews_filename)
-print "# of users: {}, # of businesses: {}".format(len(user_ids), len(bus_ids))
 
 def make_apriori_dataset(data):
     dataset = []
@@ -93,8 +97,31 @@ def make_util_mtrx():
     mtrx = [[0 for bus in range(len(bus_ids))] for user in range(len(user_ids))]
     assert len(mtrx) == len(user_ids)
     assert len(mtrx[0]) == len(bus_ids)
+    for user in dataset:
+        for review in dataset[user]["reviews"]:
+            usernum = user_ints[user]
+            busnum = bus_ints[review["business_id"]]
+            mtrx[usernum][busnum] = review["stars"]
+    return mtrx 
+
 make_util_mtrx()
-exit(0)
+
+def cos_sim(user1, user2): # user1 and user2 are id numbers (integers)
+    numerator = 0
+    for i in range(len(umtrx[0]):
+        if umtrx[user1][i] != 0 and umtrx[user2][i] != 0:
+            numerator += umtrx[user1][i] * umtrx[user2][i]
+    denom = 0
+    user1sumsq = 0
+    user2sumsq = 0
+    for i in range(len(umtrx[0])):
+        user1sumsq += umtrx[user1][i] * umtrx[user1][i]
+        user2sumsq += umtrx[user2][i] * umtrx[user2][i]
+        i += 1
+    denom += sqrt(user1sumsq) * sqrt(user2sumsq)
+    if denom == 0:
+        return 0
+    else return numerator / denom
 
 #def find_recommendations(user):
 #
@@ -102,9 +129,8 @@ exit(0)
 #
 #def find_similar_users(user):
 #
-#def cos_sim(user1, user2):
 
-    
+#def normalize_mtrx(mtrx) 
 
  
 
