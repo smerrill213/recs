@@ -12,6 +12,8 @@ reviews_filename = "./yelp/sm_review.json"
 bus_filename = "./yelp/sm_business.json"
 
 umtrx = ''
+nmtrx = ''
+the_matrix = ''
 dataset = ''
 bus_ids = {} # integer to id
 bus_ints = {} # id to integer
@@ -93,6 +95,26 @@ def make_utility_mtrx():
     return mtrx
 
 umtrx = make_utility_mtrx()
+the_matrix = umtrx
+
+def normalize_mtrx(mtrx):
+    nmtrx = [[0 for j in range(len(mtrx[0]))] for i in range(len(mtrx))]
+    for i in range(len(mtrx)):
+        sum = 0
+        ct = 0
+        for j in range(len(mtrx[0])):
+            if mtrx[i][j] != 0:
+                sum += mtrx[i][j]
+                ct += 1
+        avg = sum / ct
+        for j in range(len(mtrx[0])):
+            if mtrx[i][j] != 0:
+                nmtrx[i][j] = mtrx[i][j] - avg
+    return nmtrx 
+
+nmtrx = normalize_mtrx(umtrx)
+the_matrix = nmtrx
+
 #i = 0
 #for u in umtrx:
 #    if i > 20:
@@ -134,15 +156,15 @@ def make_util_mtrx():
 
 def cos_sim(user1, user2): # user1 and user2 are id numbers (integers)
     numerator = 0
-    for i in range(len(umtrx[0])):
-        if umtrx[user1][i] != 0 and umtrx[user2][i] != 0:
-            numerator += umtrx[user1][i] * umtrx[user2][i]
+    for i in range(len(the_matrix[0])):
+        if the_matrix[user1][i] != 0 and the_matrix[user2][i] != 0:
+            numerator += the_matrix[user1][i] * the_matrix[user2][i]
     denom = 0
     user1sumsq = 0
     user2sumsq = 0
-    for i in range(len(umtrx[0])):
-        user1sumsq += umtrx[user1][i] * umtrx[user1][i]
-        user2sumsq += umtrx[user2][i] * umtrx[user2][i]
+    for i in range(len(the_matrix[0])):
+        user1sumsq += the_matrix[user1][i] * the_matrix[user1][i]
+        user2sumsq += the_matrix[user2][i] * the_matrix[user2][i]
         i += 1
     denom += sqrt(user1sumsq) * sqrt(user2sumsq)
     if denom == 0:
@@ -160,22 +182,22 @@ def find_similar_users(user): # user is the integer id
     sim_users = []
     for user2 in dataset:
         cossim = cos_sim(user, user_ints[user2])
-        if user != user2 and cossim >= threshold and abs(cossim - 1.0) >= 0.001:
+        if user != user2 and cossim >= threshold: #and abs(cossim - 1.0) >= 0.001:
             sim_users.append((user_ints[user2], cossim))
-    return sim_users #this is a list of tuples of (user, similarity) 
+    return sim_users #this is a list of tuples of (user integer, similarity) 
 
 #for i in range(10):
 #    simusers = find_similar_users(i)
 #    if len(simusers) != 0:
 #        print "Similar users to {}:\n".format(i)
 #        for user in simusers:
-#            print "User: {}, similarity: {}".format(user_ints[user[0]], user[1])
+#            print "User: {}, similarity: {}".format(user[0], user[1])
 #        print "\n"
 
 def favs(user): # user is the integer id
     favs = [] 
     for bus in dataset[user_ids[user]]["reviews"]:
-        if bus["stars"] >= 3: # if they gave it at least 3 stars 
+        if bus["stars"] >= 0: # if they rated it above their average
             favs.append(bus["business_id"]) 
     return favs
 
@@ -187,13 +209,21 @@ def find_recommendations(user):
         recs.extend(favslist)
     return recs
 
-#def normalize_mtrx(mtrx) 
-
 #for i in range(50):
 #    print "Similar users to user {}: {}".format(i, find_similar_users(i))
 
+def bus_name(busid):
+    
+
 for i in range(15):
+    favslist = favs(i)
+    favs_string = ''
+    for f in favslist:
+        favs_string += f + ", "
     recs = find_recommendations(i)
+    recs_string = ''
+    for r in recs:
+        recs_string += r + "\n"
     if len(recs) != 0:
-        print "Recommendations for user {}: {}\n".format(i, recs) 
+        print "Because user {} liked {}, we recommend the following businesses: \n{}\n".format(i, favs_string, recs_string)
 
