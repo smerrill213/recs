@@ -161,24 +161,16 @@ def find_similar_users(user): # user is the integer id
     for user2 in dataset:
         cossim = cos_sim(user, user_ints[user2])
         if user != user2 and cossim >= threshold and abs(cossim - 1.0) >= 0.001:
-            sim_users.append((user2, cos_sim))
+            sim_users.append((user_ints[user2], cossim))
     return sim_users #this is a list of tuples of (user, similarity) 
 
-for i in range(10):
-    simusers = find_similar_users(i)
-    if len(simusers) != 0:
-        print "Similar users to {}:\n".format(i)
-        for user in simusers:
-            print user[0]
-        print "\n"
-
-def find_recommendations(user):
-    recs = []
-    sim_users = find_similar_users(user)
-    for user in sim_users:
-        favs = favs(user)
-        recs.extend(favs)
-    return recs
+#for i in range(10):
+#    simusers = find_similar_users(i)
+#    if len(simusers) != 0:
+#        print "Similar users to {}:\n".format(i)
+#        for user in simusers:
+#            print "User: {}, similarity: {}".format(user_ints[user[0]], user[1])
+#        print "\n"
 
 def favs(user): # user is the integer id
     favs = [] 
@@ -187,13 +179,21 @@ def favs(user): # user is the integer id
             favs.append(bus["business_id"]) 
     return favs
 
+def find_recommendations(user):
+    recs = []
+    sim_users = find_similar_users(user)
+    for user in sim_users:
+        favslist = favs(user[0])
+        recs.extend(favslist)
+    return recs
+
 #def normalize_mtrx(mtrx) 
 
 #for i in range(50):
 #    print "Similar users to user {}: {}".format(i, find_similar_users(i))
 
-#for i in range(15):
-#    recs = find_recommendations(i)
-#    if len(recs) != 0:
-#        print "Recommendations for user {}: {}\n".format(i, recs) 
+for i in range(15):
+    recs = find_recommendations(i)
+    if len(recs) != 0:
+        print "Recommendations for user {}: {}\n".format(i, recs) 
 
