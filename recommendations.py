@@ -17,6 +17,7 @@ the_matrix = ''
 dataset = ''
 bus_ids = {} # integer to id
 bus_ints = {} # id to integer
+bus_names = {} # from weird id string to business name
 user_ids = {}
 user_ints = {}
 threshold = .3
@@ -204,26 +205,48 @@ def favs(user): # user is the integer id
 def find_recommendations(user):
     recs = []
     sim_users = find_similar_users(user)
+    userfavs = favs(user)
     for user in sim_users:
         favslist = favs(user[0])
-        recs.extend(favslist)
+        for f in favslist:
+            if f not in recs and f not in userfavs:
+                recs.append(f)
     return recs
 
 #for i in range(50):
 #    print "Similar users to user {}: {}".format(i, find_similar_users(i))
 
-def bus_name(busid):
+def make_bus_dict():
     
+    with open(bus_filename, 'rb') as bus_file:
+        bus_data = bus_file.read()
 
-for i in range(15):
+    businesses = json.loads(bus_data)
+
+    for b in businesses:
+        id = b["business_id"]
+        name = b["name"]
+        bus_names[id] = name
+
+make_bus_dict()
+
+def bus_name(busid):
+    if busid in bus_names:
+        return bus_names[busid]    
+    else:
+        return busid
+
+for i in range(500, 100, -5):
     favslist = favs(i)
     favs_string = ''
     for f in favslist:
-        favs_string += f + ", "
+        bname = bus_name(f)
+        favs_string += bname + ", "
     recs = find_recommendations(i)
     recs_string = ''
     for r in recs:
-        recs_string += r + "\n"
+        bname = bus_name(r)
+        recs_string += bname + "\n"
     if len(recs) != 0:
         print "Because user {} liked {}, we recommend the following businesses: \n{}\n".format(i, favs_string, recs_string)
 
