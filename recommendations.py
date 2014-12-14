@@ -42,6 +42,7 @@ def make_dataset(users_filename, reviews_filename):
     dataset = {}
     assert type(dataset) is dict
 
+
 #    for user in users:
 #        id = user["user_id"]
 #        dataset[id] = {"reviews": []} 
@@ -92,7 +93,10 @@ def make_utility_mtrx():
     return mtrx
 
 umtrx = make_utility_mtrx()
+#i = 0
 #for u in umtrx:
+#    if i > 20:
+#        break
 #    print u
 #    print "\n"
 
@@ -142,26 +146,54 @@ def cos_sim(user1, user2): # user1 and user2 are id numbers (integers)
         i += 1
     denom += sqrt(user1sumsq) * sqrt(user2sumsq)
     if denom == 0:
-        return 0
+        return 0.0
     else:
         return numerator / denom
 
-#for i in range(15):
-#    for j in range(15):
-#        print "cos_sim for users {} and {}: {}".format(i, j, cos_sim(i, j))
-#        if cos_sim(i, j) == 1.0:
-#            print "\nutility matrix for {}: {}\n\nutility matrix for {}: {}\n".format(i, umtrx[i], j, umtrx[j])
-#
-#def find_similar_users(user): # user is the integer id
-     
+#for i in range(100):
+#    for j in range(300, 200, -1):
+#        sim = cos_sim(i, j)
+#        if abs(sim) >= 0.001 and abs(sim - 1.0) >= 0.001:
+#            print "cos_sim for users {} and {}: {}".format(i, j, sim)
 
-#def find_recommendations(user):
-#
-#def favs(user):
-#
-#
+def find_similar_users(user): # user is the integer id
+    sim_users = []
+    for user2 in dataset:
+        cossim = cos_sim(user, user_ints[user2])
+        if user != user2 and cossim >= threshold and abs(cossim - 1.0) >= 0.001:
+            sim_users.append((user2, cos_sim))
+    return sim_users #this is a list of tuples of (user, similarity) 
+
+for i in range(10):
+    simusers = find_similar_users(i)
+    if len(simusers) != 0:
+        print "Similar users to {}:\n".format(i)
+        for user in simusers:
+            print user[0]
+        print "\n"
+
+def find_recommendations(user):
+    recs = []
+    sim_users = find_similar_users(user)
+    for user in sim_users:
+        favs = favs(user)
+        recs.extend(favs)
+    return recs
+
+def favs(user): # user is the integer id
+    favs = [] 
+    for bus in dataset[user_ids[user]]["reviews"]:
+        if bus["stars"] >= 3: # if they gave it at least 3 stars 
+            favs.append(bus["business_id"]) 
+    return favs
 
 #def normalize_mtrx(mtrx) 
 
- 
+#for i in range(50):
+#    print "Similar users to user {}: {}".format(i, find_similar_users(i))
+
+#for i in range(15):
+#    recs = find_recommendations(i)
+#    if len(recs) != 0:
+#        print "Recommendations for user {}: {}\n".format(i, recs) 
 
